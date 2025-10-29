@@ -1,0 +1,6 @@
+{
+  "name": "CharChiru",
+  "description": "An old-school video generator powered by Veo. Describe any scene and get a stunning video with a retro vibe.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
