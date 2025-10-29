@@ -166,7 +166,8 @@ export const generateVideo = async (
     const url = videoObject.uri;
     console.log('Fetching video from:', url);
 
-    const res = await fetch(`${url}&key=${process.env.API_KEY}`);
+    const separator = url.includes('?') ? '&' : '?';
+    const res = await fetch(`${url}${separator}key=${process.env.API_KEY}`);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch video: ${res.status} ${res.statusText}`);
