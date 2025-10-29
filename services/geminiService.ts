@@ -25,13 +25,11 @@ export const generateVideoPrompt = async (): Promise<string> => {
   }
 };
 
-// Fix: API key is now handled by process.env.API_KEY, so it's removed from parameters.
 export const generateVideo = async (
   params: GenerateVideoParams,
 ): Promise<{objectUrl: string; blob: Blob; uri: string; video: Video}> => {
   console.log('Starting video generation with params:', params);
 
-  // Fix: API key must be obtained from process.env.API_KEY as per guidelines.
   const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
 
   const config: any = {
@@ -44,14 +42,22 @@ export const generateVideo = async (
     config.aspectRatio = params.aspectRatio;
   }
 
+  const promptParts = [];
+  if (params.prompt && params.prompt.trim()) {
+    promptParts.push(params.prompt.trim());
+  }
+  if (params.musicPrompt && params.musicPrompt.trim()) {
+    promptParts.push(`Audio: ${params.musicPrompt.trim()}`);
+  }
+  const finalPrompt = promptParts.join('. ');
+
   const generateVideoPayload: any = {
     model: params.model,
     config: config,
   };
 
-  // Only add the prompt if it's not empty, as an empty prompt might interfere with other parameters.
-  if (params.prompt) {
-    generateVideoPayload.prompt = params.prompt;
+  if (finalPrompt) {
+    generateVideoPayload.prompt = finalPrompt;
   }
 
   if (params.mode === GenerationMode.IMAGE_TO_VIDEO) {
@@ -157,10 +163,9 @@ export const generateVideo = async (
     }
     const videoObject = firstVideo.video;
 
-    const url = decodeURIComponent(videoObject.uri);
+    const url = videoObject.uri;
     console.log('Fetching video from:', url);
 
-    // Fix: The API key for fetching the video must also come from process.env.API_KEY.
     const res = await fetch(`${url}&key=${process.env.API_KEY}`);
 
     if (!res.ok) {

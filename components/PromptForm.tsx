@@ -232,6 +232,9 @@ const PromptForm: React.FC<PromptFormProps> = ({
     initialValues?.inputVideoObject ?? null,
   );
   const [isLooping, setIsLooping] = useState(initialValues?.isLooping ?? false);
+  const [musicPrompt, setMusicPrompt] = useState(
+    initialValues?.musicPrompt ?? '',
+  );
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
@@ -254,6 +257,7 @@ const PromptForm: React.FC<PromptFormProps> = ({
       setInputVideo(initialValues.inputVideo ?? null);
       setInputVideoObject(initialValues.inputVideoObject ?? null);
       setIsLooping(initialValues.isLooping ?? false);
+      setMusicPrompt(initialValues.musicPrompt ?? '');
     }
   }, [initialValues]);
 
@@ -318,6 +322,7 @@ const PromptForm: React.FC<PromptFormProps> = ({
         inputVideo,
         inputVideoObject,
         isLooping,
+        musicPrompt,
       });
     },
     [
@@ -335,6 +340,7 @@ const PromptForm: React.FC<PromptFormProps> = ({
       inputVideoObject,
       onGenerate,
       isLooping,
+      musicPrompt,
     ],
   );
 
@@ -350,6 +356,7 @@ const PromptForm: React.FC<PromptFormProps> = ({
     setInputVideo(null);
     setInputVideoObject(null);
     setIsLooping(false);
+    setMusicPrompt('');
 
     if (mode === GenerationMode.EXTEND_VIDEO) {
       setModel(VeoModel.VEO); // Extend requires the VEO model
@@ -502,7 +509,7 @@ const PromptForm: React.FC<PromptFormProps> = ({
 
   switch (generationMode) {
     case GenerationMode.TEXT_TO_VIDEO:
-      isSubmitDisabled = !prompt.trim();
+      isSubmitDisabled = !prompt.trim() && !musicPrompt.trim();
       if (isSubmitDisabled) {
         tooltipText = 'Please enter a prompt.';
       }
@@ -521,7 +528,7 @@ const PromptForm: React.FC<PromptFormProps> = ({
       break;
     case GenerationMode.REFERENCES_TO_VIDEO:
       const hasNoRefs = referenceImages.length === 0;
-      const hasNoPrompt = !prompt.trim();
+      const hasNoPrompt = !prompt.trim() && !musicPrompt.trim();
       isSubmitDisabled = hasNoRefs || hasNoPrompt;
       if (hasNoRefs && hasNoPrompt) {
         tooltipText = 'Please add reference image(s) and enter a prompt.';
@@ -582,6 +589,23 @@ const PromptForm: React.FC<PromptFormProps> = ({
                 </p>
               )}
             </div>
+          </div>
+          <div className="music-prompt-container">
+            <label htmlFor="music-prompt-input">
+              Music Prompt (Experimental)
+            </label>
+            <input
+              id="music-prompt-input"
+              type="text"
+              className="text-input"
+              value={musicPrompt}
+              onChange={(e) => setMusicPrompt(e.target.value)}
+              placeholder="e.g., 'upbeat synthwave track'"
+            />
+            <p>
+              Describe background music to be generated with the video. This is
+              an experimental feature and may not produce audio.
+            </p>
           </div>
         </div>
       )}

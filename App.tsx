@@ -211,6 +211,7 @@ const App: React.FC = () => {
           referenceImages: [],
           styleImage: null,
           isLooping: false,
+          musicPrompt: '',
         });
 
         setAppState(AppState.IDLE);
@@ -233,6 +234,7 @@ const App: React.FC = () => {
       aspectRatio: AspectRatio.LANDSCAPE,
       resolution: Resolution.P720,
       mode: GenerationMode.TEXT_TO_VIDEO,
+      musicPrompt: '',
       ...example,
     });
   };

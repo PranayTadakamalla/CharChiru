@@ -373,6 +373,33 @@ a:hover {
   color: var(--text-color);
 }
 
+.music-prompt-container {
+  margin-top: 1rem;
+  border-top: 2px dashed var(--border-color);
+  padding-top: 1rem;
+}
+.music-prompt-container label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.music-prompt-container input.text-input {
+  width: 100%;
+  appearance: none;
+  background-color: var(--input-bg);
+  border: 2px solid var(--border-color);
+  color: var(--text-color);
+  font-family: var(--font-mono);
+  font-size: 18px;
+  padding: 8px;
+  outline: none;
+}
+.music-prompt-container p {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+
 /* Mode Selector */
 .mode-selector-popup {
   position: absolute;

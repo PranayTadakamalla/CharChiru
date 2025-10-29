@@ -58,4 +58,5 @@ export interface GenerateVideoParams {
   inputVideo?: VideoFile | null;
   inputVideoObject?: Video | null;
   isLooping?: boolean;
+  musicPrompt?: string;
 }
