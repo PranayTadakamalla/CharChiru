@@ -4,9 +4,9 @@
 */
 import {Video} from '@google/genai';
 import React, {useCallback, useEffect, useState} from 'react';
-import ApiKeyDialog from './components/ApiKeyDialog';
 import LoadingIndicator from './components/LoadingIndicator';
 import PromptForm from './components/PromptForm';
+import StartupAnimation from './components/StartupAnimation';
 import VideoResult from './components/VideoResult';
 import {generateVideo} from './services/geminiService';
 import {
@@ -56,126 +56,48 @@ const App: React.FC = () => {
   );
   const [lastVideoObject, setLastVideoObject] = useState<Video | null>(null);
   const [lastVideoBlob, setLastVideoBlob] = useState<Blob | null>(null);
-  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [isStartingUp, setIsStartingUp] = useState(true);
 
   // A single state to hold the initial values for the prompt form
   const [initialFormValues, setInitialFormValues] =
     useState<GenerateVideoParams | null>(null);
 
-  // Check for API key on initial load
   useEffect(() => {
-    const checkApiKey = async () => {
-      if (window.aistudio) {
-        try {
-          if (!(await window.aistudio.hasSelectedApiKey())) {
-            setShowApiKeyDialog(true);
-          }
-        } catch (error) {
-          console.warn(
-            'aistudio.hasSelectedApiKey check failed, assuming no key selected.',
-            error,
-          );
-          setShowApiKeyDialog(true);
-        }
-      }
-    };
-    checkApiKey();
+    const startupTimer = setTimeout(() => {
+      setIsStartingUp(false);
+    }, 2800);
+    return () => clearTimeout(startupTimer);
   }, []);
 
-  const showStatusError = (message: string) => {
-    setErrorMessage(message);
-    setAppState(AppState.ERROR);
-  };
+  const handleGenerate = useCallback(
+    async (params: GenerateVideoParams) => {
+      setAppState(AppState.LOADING);
+      setErrorMessage(null);
+      setLastConfig(params);
+      // Reset initial form values for the next fresh start
+      setInitialFormValues(null);
 
-  const executeGeneration = useCallback(async (params: GenerateVideoParams) => {
-    setAppState(AppState.LOADING);
-    setErrorMessage(null);
-    // Reset initial form values for the next fresh start
-    setInitialFormValues(null);
-
-    try {
-      const {objectUrl, blob, video} = await generateVideo(params);
-      setVideoUrl(objectUrl);
-      setLastVideoBlob(blob);
-      setLastVideoObject(video);
-      setAppState(AppState.SUCCESS);
-    } catch (error) {
-      console.error('Video generation failed:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unknown error occurred.';
-
-      let userFriendlyMessage = `Video generation failed: ${errorMessage}`;
-      let shouldOpenDialog = false;
-
-      if (typeof errorMessage === 'string') {
-        if (errorMessage.includes('Requested entity was not found.')) {
-          userFriendlyMessage =
-            'Model not found. This can be caused by an invalid API key or permission issues. Please check your API key.';
-          shouldOpenDialog = true;
-        } else if (
-          errorMessage.includes('API_KEY_INVALID') ||
-          errorMessage.includes('API key not valid') ||
-          errorMessage.toLowerCase().includes('permission denied')
-        ) {
-          userFriendlyMessage =
-            'Your API key is invalid or lacks permissions. Please select a valid, billing-enabled API key.';
-          shouldOpenDialog = true;
-        } else if (errorMessage.toLowerCase().includes('invalid argument')) {
-            userFriendlyMessage = `The video generation request was invalid. This can happen with unsupported parameters (e.g., extending a 1080p video) or if media files are corrupted. Please check your settings and files. Original error: ${errorMessage}`;
-        }
-      }
-
-      setErrorMessage(userFriendlyMessage);
-      setAppState(AppState.ERROR);
-
-      if (shouldOpenDialog) {
-        setShowApiKeyDialog(true);
-      }
-    }
-  }, []);
-
-  const handleGenerate = useCallback(async (params: GenerateVideoParams) => {
-    // Store the requested params in case the key check fails
-    // and the user needs to select one before we can proceed.
-    setLastConfig(params);
-
-    if (window.aistudio) {
       try {
-        if (!(await window.aistudio.hasSelectedApiKey())) {
-          setShowApiKeyDialog(true);
-          return;
-        }
+        const {objectUrl, blob, video} = await generateVideo(params);
+        setVideoUrl(objectUrl);
+        setLastVideoBlob(blob);
+        setLastVideoObject(video);
+        setAppState(AppState.SUCCESS);
       } catch (error) {
-        console.warn(
-          'aistudio.hasSelectedApiKey check failed, assuming no key selected.',
-          error,
-        );
-        setShowApiKeyDialog(true);
-        return;
+        console.error('Video generation failed:', error);
+        // Per user request, show a generic, secure error message for all failures.
+        setErrorMessage('Video generation failed. Please try again.');
+        setAppState(AppState.ERROR);
       }
-    }
-
-    await executeGeneration(params);
-  }, [executeGeneration]);
+    },
+    [],
+  );
 
   const handleRetry = useCallback(() => {
     if (lastConfig) {
       handleGenerate(lastConfig);
     }
   }, [lastConfig, handleGenerate]);
-
-  const handleApiKeyDialogContinue = async () => {
-    setShowApiKeyDialog(false);
-    if (window.aistudio) {
-      await window.aistudio.openSelectKey();
-    }
-    // If we have a pending generation config, execute it directly.
-    // This bypasses the `handleGenerate` check to avoid a race condition
-    // where `hasSelectedApiKey` might still be false immediately after selection.
-    if (lastConfig) {
-      await executeGeneration(lastConfig);
-    }
-  };
 
   const handleNewVideo = useCallback(() => {
     setAppState(AppState.IDLE);
@@ -231,7 +153,8 @@ const App: React.FC = () => {
         console.error('Failed to process video for extension:', error);
         const message =
           error instanceof Error ? error.message : 'An unknown error occurred.';
-        showStatusError(`Failed to prepare video for extension: ${message}`);
+        setErrorMessage(`Failed to prepare video for extension: ${message}`);
+        setAppState(AppState.ERROR);
       }
     }
   }, [lastConfig, lastVideoBlob, lastVideoObject]);
@@ -252,7 +175,7 @@ const App: React.FC = () => {
   const handleDownload = useCallback(() => {
     if (videoUrl && lastVideoBlob) {
       const a = document.createElement('a');
-      a.href = videoUrl;
+a.href = videoUrl;
       const safePrompt =
         lastConfig?.prompt
           ?.toLowerCase()
@@ -269,19 +192,15 @@ const App: React.FC = () => {
     <div className="error-container">
       <h2>[ System Error ]</h2>
       <p>{message}</p>
-      <button
-        onClick={handleTryAgainFromError}
-        >
-        Try Again
-      </button>
+      <button onClick={handleTryAgainFromError}>Try Again</button>
     </div>
   );
-  
+
   const renderIdleContent = () => (
     <>
       <div className="idle-container">
-         <div>
-           <h2>SYSTEM.READY AWAITING COMMAND...</h2>
+        <div>
+          <h2>SYSTEM.READY AWAITING COMMAND...</h2>
         </div>
         <div>
           <h3>&gt; OR LOAD EXAMPLE:</h3>
@@ -289,8 +208,7 @@ const App: React.FC = () => {
             {examplePrompts.map((example) => (
               <button
                 key={example.title}
-                onClick={() => handleSelectExample(example)}
-                >
+                onClick={() => handleSelectExample(example)}>
                 {example.title}
               </button>
             ))}
@@ -303,44 +221,51 @@ const App: React.FC = () => {
           initialValues={initialFormValues}
           lastVideoObject={lastVideoObject}
           lastVideoBlob={lastVideoBlob}
+          lastConfig={lastConfig}
         />
       </div>
     </>
   );
-  
+
   const renderActiveContent = () => {
     switch (appState) {
-        case AppState.LOADING:
-            return <LoadingIndicator />;
-        case AppState.SUCCESS:
-            return videoUrl ? (
-                <VideoResult
-                    videoUrl={videoUrl}
-                    onRetry={handleRetry}
-                    onNewVideo={handleNewVideo}
-                    onExtend={handleExtend}
-                    canExtend={lastConfig?.resolution === Resolution.P720}
-                    onDownload={handleDownload}
-                />
-            ) : renderError('Video generated, but URL is missing. Please try again.');
-        case AppState.ERROR:
-            return errorMessage ? renderError(errorMessage) : renderError('An unknown error occurred.');
-        default:
-            return null;
+      case AppState.LOADING:
+        return <LoadingIndicator />;
+      case AppState.SUCCESS:
+        return videoUrl ? (
+          <VideoResult
+            videoUrl={videoUrl}
+            onRetry={handleRetry}
+            onNewVideo={handleNewVideo}
+            onExtend={handleExtend}
+            canExtend={lastConfig?.resolution === Resolution.P720}
+            onDownload={handleDownload}
+          />
+        ) : (
+          renderError('Video generated, but URL is missing. Please try again.')
+        );
+      case AppState.ERROR:
+        return errorMessage
+          ? renderError(errorMessage)
+          : renderError('An unknown error occurred.');
+      default:
+        return null;
     }
-  }
+  };
 
+  if (isStartingUp) {
+    return <StartupAnimation />;
+  }
 
   return (
     <div className="app-container">
-      {showApiKeyDialog && (
-        <ApiKeyDialog onContinue={handleApiKeyDialogContinue} />
-      )}
       <header className="app-header">
         <h1>CharChiru</h1>
       </header>
       <main className="app-main">
-        {appState === AppState.IDLE ? renderIdleContent() : renderActiveContent()}
+        {appState === AppState.IDLE
+          ? renderIdleContent()
+          : renderActiveContent()}
       </main>
     </div>
   );

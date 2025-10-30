@@ -189,6 +189,7 @@ interface PromptFormProps {
   initialValues?: GenerateVideoParams | null;
   lastVideoObject?: Video | null;
   lastVideoBlob?: Blob | null;
+  lastConfig?: GenerateVideoParams | null;
 }
 
 const PromptForm: React.FC<PromptFormProps> = ({
@@ -196,6 +197,7 @@ const PromptForm: React.FC<PromptFormProps> = ({
   initialValues,
   lastVideoObject,
   lastVideoBlob,
+  lastConfig,
 }) => {
   const [prompt, setPrompt] = useState(initialValues?.prompt ?? '');
   const [model, setModel] = useState<VeoModel>(
@@ -360,7 +362,7 @@ const PromptForm: React.FC<PromptFormProps> = ({
 
     if (mode === GenerationMode.EXTEND_VIDEO) {
       setModel(VeoModel.VEO); // Extend requires the VEO model
-      if (lastVideoBlob && lastVideoObject) {
+      if (lastVideoBlob && lastVideoObject && lastConfig) {
         const file = new File([lastVideoBlob], 'last_video.mp4', {
           type: lastVideoBlob.type,
         });
@@ -368,8 +370,8 @@ const PromptForm: React.FC<PromptFormProps> = ({
         setInputVideo(videoFile);
         setInputVideoObject(lastVideoObject);
         // The API for extend requires the aspect ratio to match.
-        if (lastVideoObject.aspectRatio) {
-          setAspectRatio(lastVideoObject.aspectRatio as AspectRatio);
+        if (lastConfig.aspectRatio) {
+          setAspectRatio(lastConfig.aspectRatio);
         }
       }
     }

@@ -10,11 +10,15 @@ import {
 } from '@google/genai';
 import {GenerateVideoParams, GenerationMode} from '../types';
 
+// Per instructions, the API key must be obtained from process.env.API_KEY.
+// The key is passed directly to the GoogleGenAI constructor.
+
 export const generateVideoPrompt = async (): Promise<string> => {
   try {
+    // Initialize the client with the API key from environment variables.
     const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-flash-lite-latest',
       contents:
         'Generate a short, creative, and visually descriptive prompt for a video generation model. The prompt should be a single sentence and not be enclosed in quotes.',
     });
@@ -30,6 +34,7 @@ export const generateVideo = async (
 ): Promise<{objectUrl: string; blob: Blob; uri: string; video: Video}> => {
   console.log('Starting video generation with params:', params);
 
+  // Initialize the client with the API key from environment variables.
   const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
 
   const config: any = {
@@ -166,31 +171,22 @@ export const generateVideo = async (
     const url = videoObject.uri;
     console.log('Fetching video from base URI:', url);
 
-    // Use URL and URLSearchParams for robust URL construction.
-    // This is safer than manual string concatenation.
     const fetchUrl = new URL(url);
-    fetchUrl.searchParams.set('key', process.env.API_KEY!);
+    fetchUrl.searchParams.set('key', process.env.API_KEY as string);
     console.log('Constructed fetch URL:', fetchUrl.href);
 
     const res = await fetch(fetchUrl.href);
 
     if (!res.ok) {
-      let errorBody = '';
-      try {
-        // Attempt to read the response body for more detailed error info.
-        errorBody = await res.text();
-      } catch (e) {
-        errorBody = 'Could not read error response body.';
-      }
+      const errorBody = await res.text().catch(() => 'Could not read error response.');
       console.error(
         'Fetch failed. Status:',
         res.status,
         'Response Body:',
         errorBody,
       );
-      throw new Error(
-        `Failed to fetch video: ${res.status} ${res.statusText}. Server said: "${errorBody}"`,
-      );
+      // Throw a generic error to avoid leaking details to the UI.
+      throw new Error('Video generation failed.');
     }
 
     const videoBlob = await res.blob();
@@ -199,6 +195,6 @@ export const generateVideo = async (
     return {objectUrl, blob: videoBlob, uri: url, video: videoObject};
   } else {
     console.error('Operation failed:', operation);
-    throw new Error('No videos generated.');
+    throw new Error('Video generation failed.');
   }
 };
