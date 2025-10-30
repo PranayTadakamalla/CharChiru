@@ -87,26 +87,9 @@ const App: React.FC = () => {
     setAppState(AppState.ERROR);
   };
 
-  const handleGenerate = useCallback(async (params: GenerateVideoParams) => {
-    if (window.aistudio) {
-      try {
-        if (!(await window.aistudio.hasSelectedApiKey())) {
-          setShowApiKeyDialog(true);
-          return;
-        }
-      } catch (error) {
-        console.warn(
-          'aistudio.hasSelectedApiKey check failed, assuming no key selected.',
-          error,
-        );
-        setShowApiKeyDialog(true);
-        return;
-      }
-    }
-
+  const executeGeneration = useCallback(async (params: GenerateVideoParams) => {
     setAppState(AppState.LOADING);
     setErrorMessage(null);
-    setLastConfig(params);
     // Reset initial form values for the next fresh start
     setInitialFormValues(null);
 
@@ -151,6 +134,30 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const handleGenerate = useCallback(async (params: GenerateVideoParams) => {
+    // Store the requested params in case the key check fails
+    // and the user needs to select one before we can proceed.
+    setLastConfig(params);
+
+    if (window.aistudio) {
+      try {
+        if (!(await window.aistudio.hasSelectedApiKey())) {
+          setShowApiKeyDialog(true);
+          return;
+        }
+      } catch (error) {
+        console.warn(
+          'aistudio.hasSelectedApiKey check failed, assuming no key selected.',
+          error,
+        );
+        setShowApiKeyDialog(true);
+        return;
+      }
+    }
+
+    await executeGeneration(params);
+  }, [executeGeneration]);
+
   const handleRetry = useCallback(() => {
     if (lastConfig) {
       handleGenerate(lastConfig);
@@ -162,8 +169,11 @@ const App: React.FC = () => {
     if (window.aistudio) {
       await window.aistudio.openSelectKey();
     }
-    if (appState === AppState.ERROR && lastConfig) {
-      handleRetry();
+    // If we have a pending generation config, execute it directly.
+    // This bypasses the `handleGenerate` check to avoid a race condition
+    // where `hasSelectedApiKey` might still be false immediately after selection.
+    if (lastConfig) {
+      await executeGeneration(lastConfig);
     }
   };
 
