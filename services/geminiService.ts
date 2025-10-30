@@ -164,13 +164,33 @@ export const generateVideo = async (
     const videoObject = firstVideo.video;
 
     const url = videoObject.uri;
-    console.log('Fetching video from:', url);
+    console.log('Fetching video from base URI:', url);
 
-    const separator = url.includes('?') ? '&' : '?';
-    const res = await fetch(`${url}${separator}key=${process.env.API_KEY}`);
+    // Use URL and URLSearchParams for robust URL construction.
+    // This is safer than manual string concatenation.
+    const fetchUrl = new URL(url);
+    fetchUrl.searchParams.set('key', process.env.API_KEY!);
+    console.log('Constructed fetch URL:', fetchUrl.href);
+
+    const res = await fetch(fetchUrl.href);
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch video: ${res.status} ${res.statusText}`);
+      let errorBody = '';
+      try {
+        // Attempt to read the response body for more detailed error info.
+        errorBody = await res.text();
+      } catch (e) {
+        errorBody = 'Could not read error response body.';
+      }
+      console.error(
+        'Fetch failed. Status:',
+        res.status,
+        'Response Body:',
+        errorBody,
+      );
+      throw new Error(
+        `Failed to fetch video: ${res.status} ${res.statusText}. Server said: "${errorBody}"`,
+      );
     }
 
     const videoBlob = await res.blob();
