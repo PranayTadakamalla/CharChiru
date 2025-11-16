@@ -1,20 +1,57 @@
+# 🌈 CharChiru – Aesthetic AI Video Generation Platform
+
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+<div align="center">
 
-This contains everything you need to run your app locally.
+![Static Badge](https://img.shields.io/badge/AI%20Video%20Generator-CharChiru-blueviolet)
+![Static Badge](https://img.shields.io/badge/Gemini%20Powered-Yes-blue)
+![Static Badge](https://img.shields.io/badge/Platform-AI%20Studio-orange)
 
-View your app in AI Studio: https://ai.studio/apps/drive/1-PI9foGQZwIp1p0o8jz2TFrubKgxzaj0
+</div>
 
-## Run Locally
+CharChiru is an aesthetic-focused AI video generation platform powered by Google Gemini.  
+Easy to run, easy to customize, and designed for creators.
 
-**Prerequisites:**  Node.js
+---
 
+## 🌟 Features
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- 🎥 AI-powered video generation  
+- 🎨 Aesthetic, clean UI  
+- ⚡ Fast local development  
+- 🔧 Built from google-gemini/aistudio-repository-template  
+
+---
+
+## 🔗 AI Studio Deployment
+
+Your deployed app:  
+https://ai.studio/apps/drive/1-PI9foGQZwIp1p0o8jz2TFrubKgxzaj0
+
+---
+
+## 💻 Local Setup
+
+### Requirement
+- Node.js
+
+---
+
+### 1. Install Dependencies
+npm install
+
+### 2. Create Environment File
+Create `.env.local` with:
+
+GEMINI_API_KEY=your_api_key_here
+
+Generate from Google AI Studio.
+
+### 3. Run Server
+npm run dev
+
+Open:  
+http://localhost:3000
