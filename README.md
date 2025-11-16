@@ -13,23 +13,19 @@
 </div>
 
 CharChiru is an aesthetic-focused AI video generation platform powered by Google Gemini.  
-Easy to run, easy to customize, and designed for creators.
+It enables creators to transform text prompts into beautifully styled AI videos with ease.  
+Built for simplicity, performance, and a smooth creative workflow.
 
 ---
 
 ## 🌟 Features
 
-- 🎥 AI-powered video generation  
-- 🎨 Aesthetic, clean UI  
-- ⚡ Fast local development  
-- 🔧 Built from google-gemini/aistudio-repository-template  
-
----
-
-## 🔗 AI Studio Deployment
-
-Your deployed app:  
-https://ai.studio/apps/drive/1-PI9foGQZwIp1p0o8jz2TFrubKgxzaj0
+- 🎥 **AI-powered Video Generation**  
+- 🎨 **Aesthetic and Minimal UI** optimized for creators  
+- ⚡ **Fast Local Development** with instant preview  
+- 🧩 **Easily Customizable** prompt styles and UI components  
+- 🔧 **Built from google-gemini/aistudio-repository-template**  
+- 📁 Clean folder structure for scaling and extending features  
 
 ---
 
@@ -43,15 +39,41 @@ https://ai.studio/apps/drive/1-PI9foGQZwIp1p0o8jz2TFrubKgxzaj0
 ### 1. Install Dependencies
 npm install
 
-### 2. Create Environment File
-Create `.env.local` with:
+### 2. Create Environment File  
+Create a `.env.local` file in the project root and add:
 
 GEMINI_API_KEY=your_api_key_here
 
-Generate from Google AI Studio.
+You can generate your Gemini API key from Google AI Studio.
 
 ### 3. Run Server
 npm run dev
 
-Open:  
+Open in browser:  
 http://localhost:3000
+
+---
+
+## 📁 Project Structure
+
+- **/src** → Core application logic  
+- **/components** → UI components  
+- **/styles** → Theme + Global styles  
+- **/utils** → Reusable helpers and API logic  
+- **.env.local** → Environment variables  
+
+---
+
+## 🚀 Future Enhancements
+
+- 📸 Video preview timeline  
+- ✨ Style presets (Anime, Cinematic, Neon, Retro)  
+- 🎚️ Adjustable generation parameters  
+- 🧠 Support for additional AI models  
+- 💾 Export and share options  
+
+---
+
+## 📝 Template Source
+
+google-gemini/aistudio-repository-template
